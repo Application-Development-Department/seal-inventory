@@ -1,0 +1,32 @@
+name: Auto update main
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  merge-to-master:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Git identity
+        run: |
+          git config user.name "Application-Development-Department"
+          git config user.email "app.development@mects.co.mz"
+
+      - name: Merge dev into main
+        run: |
+          git fetch origin
+          git checkout main
+          git pull origin main
+          git merge origin/dev --no-edit
+          git push origin main
