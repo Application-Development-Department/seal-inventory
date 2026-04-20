@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from seal_inventory.schemas.seal import (
     HealthResponse,
     TableListResponse,
-    TableRowsResponse, ESealInventoryResponse,
+    TableRowsResponse, ESealInventoryResponse, ESealStatsResponse,
 )
 from seal_inventory.services.seal_service import SealService
 
@@ -82,5 +82,12 @@ def get_eseals(
         "count": len(data),
         "data": data,
     }
+
+@router.get("/eseals/stats", response_model=ESealStatsResponse, tags=["eseal"],)
+def get_eseal_stats(service: SealService = Depends(get_service)):
+    try:
+        return service.get_eseal_stats()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch eseal stats")
 
 v1_router.include_router(router)
