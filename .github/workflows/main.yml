@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  merge-to-master:
+  merge-to-main:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,10 +23,18 @@ jobs:
           git config user.name "Application-Development-Department"
           git config user.email "app.development@mects.co.mz"
 
-      - name: Merge dev into main
+      - name: Merge dev into main (safe)
         run: |
           git fetch origin
           git checkout main
           git pull origin main
-          git merge origin/dev --no-edit
+
+          # Try fast-forward first
+          if git merge --ff-only origin/dev; then
+            echo "Fast-forward merge successful"
+          else
+            echo "Fast-forward failed, trying normal merge"
+            git merge origin/dev --no-edit || exit 1
+          fi
+
           git push origin main
