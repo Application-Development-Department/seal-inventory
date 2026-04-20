@@ -60,3 +60,32 @@ class SealRepository:
                 "Invalid SQL identifier. Use letters, numbers, and underscores only."
             )
         return f"[{identifier}]"
+
+    def get_eseal_inventory(self, limit: int = 1000) -> list[dict]:
+        query = f"""
+        SELECT TOP ({limit})
+            [ID_INVENTORY],
+            [ROW_ID],
+            [CREATED],
+            [CREATED_BY],
+            [ESEAL_NUMBER],
+            [ESEAL_TYPE],
+            [ESEAL_STATUS],
+            [OWNER_NAME],
+            [OWNER_PROVINCE],
+            [OWNER_REGION],
+            [ESEAL_LAST_LOCATION_TIME],
+            [ESEAL_OFFLINE_TIME],
+            [LAST_ELECTRICITY_STATUS],
+            [LAST_TRIP_ROUTE],
+            [LAST_TRIP_DATE],
+            [LAST_TRIP_STATUS],
+            [LAST_SEALING_USER],
+            [LAST_UNSEALING_USER],
+            [LAST_LATITUDE],
+            [LAST_LONGITUDE],
+            [INT_UPDATED_DATE]
+        FROM [operation].[eseal_inventory_details]
+        ORDER BY [CREATED] DESC
+        """
+        return self.data_warehouse.fetch_rows(query)
