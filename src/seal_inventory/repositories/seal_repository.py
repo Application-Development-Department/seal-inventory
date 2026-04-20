@@ -89,3 +89,43 @@ class SealRepository:
         ORDER BY [CREATED] DESC
         """
         return self.data_warehouse.fetch_rows(query)
+
+    def get_eseal_stats(self) -> dict:
+        query = """
+                SELECT
+                    COUNT(*) AS total_seals,
+
+                    SUM(CASE
+                            WHEN ESEAL_STATUS = 'Em Uso' THEN 1
+                            ELSE 0
+                        END) AS active,
+
+                    SUM(CASE
+                            WHEN ESEAL_STATUS = 'Disponivel' THEN 1
+                            ELSE 0
+                        END) AS available,
+
+                    SUM(CASE
+                            WHEN ESEAL_STATUS = 'Por Substituir' THEN 1
+                            ELSE 0
+                        END) AS to_change,
+
+                    SUM(CASE
+                            WHEN ESEAL_STATUS = 'Em Transporte' THEN 1
+                            ELSE 0
+                        END) AS compensation,
+
+                    SUM(CASE
+                            WHEN ESEAL_STATUS IN (
+                                                  'Em Transferencia',
+                                                  'Em Manutencao',
+                                                  'Danificado'
+                                ) THEN 1
+                            ELSE 0
+                        END) AS maintenance
+
+                FROM [operation].[eseal_inventory_details] \
+                """
+
+        result = self.data_warehouse.fetch_rows(query)
+        return result[0] if result else {}

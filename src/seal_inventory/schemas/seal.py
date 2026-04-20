@@ -59,3 +59,11 @@ class ESealInventory(BaseModel):
 class ESealInventoryResponse(BaseModel):
     count: int
     data: list[ESealInventory]
+
+class ESealStatsResponse(BaseModel):
+    total_seals: int
+    active: int
+    available: int
+    to_change: int
+    compensation: int
+    maintenance: int
