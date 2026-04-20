@@ -42,3 +42,9 @@ class SealService:
         rows = self.repository.fetch_rows(table_name=table_name, limit=limit)
 
         return rows
+
+    def get_eseal_inventory(self, limit: int):
+        if limit > 1000:
+            raise ValueError("Limit cannot exceed 1000")
+
+        return self.repository.get_eseal_inventory(limit=limit)

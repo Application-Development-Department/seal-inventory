@@ -1,13 +1,14 @@
 """API route definitions."""
 
 from __future__ import annotations
+from fastapi import Depends
 
 from fastapi import APIRouter, HTTPException, Query
 
 from seal_inventory.schemas.seal import (
     HealthResponse,
     TableListResponse,
-    TableRowsResponse,
+    TableRowsResponse, ESealInventoryResponse,
 )
 from seal_inventory.services.seal_service import SealService
 
@@ -15,6 +16,8 @@ router = APIRouter()
 v1_router  = APIRouter(prefix="/api/v1")
 service = SealService()
 
+def get_service() -> SealService:
+    return SealService()
 
 @router.get("/health", response_model=HealthResponse, tags=["system"])
 def health_check() -> HealthResponse:
@@ -63,5 +66,21 @@ def get_table_rows(
 
     return TableRowsResponse(table_name=table_name, row_count=len(rows), rows=rows)
 
+@router.get("/eseals", response_model=ESealInventoryResponse, tags=["eseal"])
+def get_eseals(
+        limit: int = Query(default=100, ge=1, le=1000),
+        service: SealService = Depends(get_service),
+):
+    try:
+        data = service.get_eseal_inventory(limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch eseal inventory")
+
+    return {
+        "count": len(data),
+        "data": data,
+    }
 
 v1_router.include_router(router)
