@@ -6,7 +6,8 @@ import os
 
 from fastapi import FastAPI
 
-from seal_inventory.api.routes import router, v1_router
+from seal_inventory.api.routes import v1_router
+from seal_inventory.api.auth_routes import auth_router
 
 
 def validate_env() -> None:
@@ -34,5 +35,6 @@ app = FastAPI(
     description="API service for retrieving existing records from Microsoft SQL Server.",
 )
 
-app.include_router(router)
+# app.include_router(router)
 app.include_router(v1_router)
+app.include_router(auth_router)
