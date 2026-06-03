@@ -177,6 +177,7 @@ class NetsealRepository:
                 """
 
         with get_inventory_connection() as conn:
+
             cursor = conn.cursor()
 
             cursor.execute(
@@ -207,6 +208,7 @@ class NetsealRepository:
                 """
 
         with get_inventory_connection() as conn:
+
             cursor = conn.cursor()
 
             cursor.execute(
@@ -219,7 +221,6 @@ class NetsealRepository:
             conn.commit()
 
             return cursor.rowcount > 0
-
 
     def get_owner_by_net(
             self,
@@ -251,65 +252,6 @@ class NetsealRepository:
                 "owner_name": row[1],
                 "owner_region": row[2],
             }
-
-    def get_transfer(
-            self,
-            transfer_id: int,
-    ):
-        query = """
-                SELECT *
-                FROM asset.transfers
-                WHERE ID = ? \
-                """
-
-        with get_inventory_connection() as conn:
-
-            cursor = conn.cursor()
-
-            cursor.execute(query, transfer_id)
-
-            row = cursor.fetchone()
-    
-            if not row:
-                return None
-
-            columns = [c[0] for c in cursor.description]
-
-            return dict(zip(columns, row))
-
-    def get_transfer(
-            self,
-            transfer_id: int,
-    ):
-        query = """
-                SELECT *
-                FROM asset.transfers
-                WHERE id = ? \
-                """
-
-        with get_inventory_connection() as conn:
-
-            cursor = conn.cursor()
-
-            cursor.execute(
-                query,
-                transfer_id,
-            )
-
-            row = cursor.fetchone()
-
-            if not row:
-                return None
-
-            columns = [
-                col[0].lower()
-                for col in cursor.description
-            ]
-
-            return dict(
-                zip(columns, row)
-            )
-
 
     def get_user_transfers(
             self,
@@ -384,6 +326,7 @@ class NetsealRepository:
             cursor = conn.cursor()
 
             for net_id in net_ids:
+
                 cursor.execute(
                     query,
                     net_id,
@@ -427,7 +370,10 @@ class NetsealRepository:
                     query,
 
                     transfer["destination_site_id"],
+
+                    # Site name
                     transfer["destination_site_id"],
+
                     transfer["destination_location"],
 
                     transfer["receiver_username"],
