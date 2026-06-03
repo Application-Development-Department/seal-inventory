@@ -57,7 +57,10 @@ class NetsealService:
             origin_location=origin["owner_region"],
         )
 
-        # Notify receiver
+        self.repo.mark_seals_in_transfer(
+            payload.net_ids
+        )
+
         await manager.send_to_user(
             payload.receiver_username,
             {
@@ -68,13 +71,11 @@ class NetsealService:
                 "net_ids": payload.net_ids,
                 "origin_site_id": origin["owner_id"],
                 "origin_location": origin["owner_region"],
-                "origin_name": origin["owner_name"],
                 "destination_site_id": payload.destination_site_id,
                 "destination_location": payload.destination_location,
             },
         )
 
-        # Notify sender
         await manager.send_to_user(
             sender_username,
             {
@@ -101,12 +102,25 @@ class NetsealService:
                 "Transfer not found"
             )
 
-        self.repo.confirm_transfer(
+        if transfer["status"] != "pending":
+            raise ValueError(
+                f"Transfer already {transfer['status']}"
+            )
+
+        updated = self.repo.confirm_transfer(
             transfer_id,
             receiver_username,
         )
 
-        # Notify sender
+        if not updated:
+            raise ValueError(
+                "Transfer cannot be confirmed"
+            )
+
+        self.repo.apply_transfer_to_inventory(
+            transfer_id
+        )
+
         await manager.send_to_user(
             transfer["sender_username"],
             {
@@ -116,7 +130,6 @@ class NetsealService:
             },
         )
 
-        # Notify receiver
         await manager.send_to_user(
             receiver_username,
             {
@@ -140,13 +153,26 @@ class NetsealService:
                 "Transfer not found"
             )
 
-        self.repo.reject_transfer(
+        if transfer["status"] != "pending":
+            raise ValueError(
+                f"Transfer already {transfer['status']}"
+            )
+
+        updated = self.repo.reject_transfer(
             transfer_id,
             receiver_username,
             reason,
         )
 
-        # Notify sender
+        if not updated:
+            raise ValueError(
+                "Transfer cannot be rejected"
+            )
+
+        self.repo.rollback_transfer_inventory(
+            transfer_id
+        )
+
         await manager.send_to_user(
             transfer["sender_username"],
             {
@@ -157,7 +183,6 @@ class NetsealService:
             },
         )
 
-        # Notify receiver
         await manager.send_to_user(
             receiver_username,
             {
