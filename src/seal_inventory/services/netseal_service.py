@@ -18,18 +18,13 @@ class NetsealService:
         data = self.repo.get_by_id(id)
 
         if not data:
-            raise ValueError(
-                "Netseal not found"
-            )
+            raise ValueError("Netseal not found")
 
         return data
 
     def update(self, id, data, user):
         data["UPDATED_BY"] = user
-        self.repo.update(
-            id,
-            data,
-        )
+        self.repo.update(id, data)
 
     def delete(self, id):
         self.repo.delete(id)
@@ -62,12 +57,10 @@ class NetsealService:
             origin_location=origin["owner_region"],
         )
 
-        # Mark seals as in transfer
         self.repo.mark_seals_in_transfer(
             payload.net_ids
         )
 
-        # Notify receiver
         await manager.send_to_user(
             payload.receiver_username,
             {
@@ -78,13 +71,11 @@ class NetsealService:
                 "net_ids": payload.net_ids,
                 "origin_site_id": origin["owner_id"],
                 "origin_location": origin["owner_region"],
-                "origin_name": origin["owner_name"],
                 "destination_site_id": payload.destination_site_id,
                 "destination_location": payload.destination_location,
             },
         )
 
-        # Notify sender
         await manager.send_to_user(
             sender_username,
             {
@@ -129,7 +120,6 @@ class NetsealService:
                 "Transfer cannot be confirmed"
             )
 
-        # UPDATE NET INVENTORY
         self.repo.apply_transfer_to_inventory(
             transfer_id
         )
@@ -185,7 +175,6 @@ class NetsealService:
                 "Transfer cannot be rejected"
             )
 
-        # Restore inventory status
         self.repo.rollback_transfer_inventory(
             transfer_id
         )
