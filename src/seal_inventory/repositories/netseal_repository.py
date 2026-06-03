@@ -329,3 +329,103 @@ class NetsealRepository:
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
             ]
+
+    def mark_seals_in_transfer(
+            self,
+            net_ids: list[str],
+    ):
+        query = """
+                UPDATE asset.net_inventory
+                SET
+                    NET_STATUS='EM_TRANSFERENCIA',
+                    UPDATED=GETDATE()
+                WHERE NET_ID=? \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            for net_id in net_ids:
+                cursor.execute(
+                    query,
+                    net_id,
+                )
+
+            conn.commit()
+
+    def apply_transfer_to_inventory(
+            self,
+            transfer_id: int,
+    ):
+        transfer = self.get_transfer(
+            transfer_id
+        )
+
+        if not transfer:
+            raise ValueError(
+                "Transfer not found"
+            )
+
+        net_ids = transfer["net_ids"].split(",")
+
+        query = """
+                UPDATE asset.net_inventory
+                SET
+                    OWNER_ID=?,
+                    OWNER_REGION=?,
+                    NET_STATUS='AVAILABLE',
+                    UPDATED=GETDATE(),
+                    UPDATED_BY=?
+                WHERE NET_ID=? \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            for net_id in net_ids:
+
+                cursor.execute(
+                    query,
+
+                    transfer["destination_site_id"],
+                    transfer["destination_location"],
+                    transfer["receiver_username"],
+
+                    net_id,
+                )
+
+            conn.commit()
+
+    def get_transfer(
+            self,
+            transfer_id: int,
+    ):
+        query = """
+                SELECT *
+                FROM asset.transfers
+                WHERE id=? \
+                """
+
+        with get_inventory_connection() as conn:
+
+            cursor = conn.cursor()
+
+            cursor.execute(
+                query,
+                transfer_id,
+            )
+
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            columns = [
+                col[0].lower()
+                for col in cursor.description
+            ]
+
+            return dict(
+                zip(columns, row)
+            )
+
