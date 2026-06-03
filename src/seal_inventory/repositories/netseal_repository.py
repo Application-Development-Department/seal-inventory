@@ -253,31 +253,6 @@ class NetsealRepository:
         query = """
                 SELECT *
                 FROM asset.transfers
-                WHERE ID = ? \
-                """
-
-        with get_inventory_connection() as conn:
-
-            cursor = conn.cursor()
-
-            cursor.execute(query, transfer_id)
-
-            row = cursor.fetchone()
-    
-            if not row:
-                return None
-
-            columns = [c[0] for c in cursor.description]
-
-            return dict(zip(columns, row))
-
-    def get_transfer(
-            self,
-            transfer_id: int,
-    ):
-        query = """
-                SELECT *
-                FROM asset.transfers
                 WHERE id = ? \
                 """
 
