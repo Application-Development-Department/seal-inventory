@@ -427,8 +427,9 @@ class NetsealRepository:
                     query,
 
                     transfer["destination_site_id"],
-                    transfer["receiver_username"],
+                    transfer["destination_site_id"],
                     transfer["destination_location"],
+
                     transfer["receiver_username"],
 
                     net_id,
