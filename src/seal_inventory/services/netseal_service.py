@@ -93,6 +93,9 @@ class NetsealService:
             transfer_id,
             receiver_username,
     ):
+        if isinstance(receiver_username, dict):
+            receiver_username = receiver_username["username"]
+
         transfer = self.repo.get_transfer(
             transfer_id
         )
@@ -144,6 +147,9 @@ class NetsealService:
             receiver_username,
             reason,
     ):
+        if isinstance(receiver_username, dict):
+            receiver_username = receiver_username["username"]
+
         transfer = self.repo.get_transfer(
             transfer_id
         )

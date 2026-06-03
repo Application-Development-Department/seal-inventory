@@ -169,10 +169,11 @@ class NetsealRepository:
         query = """
                 UPDATE asset.transfers
                 SET
-                    STATUS='confirmed',
+                    status='confirmed',
                     receiver_username=?,
                     updated_at=GETDATE()
-                WHERE id=? \
+                WHERE id=?
+                  AND status='pending' \
                 """
 
         with get_inventory_connection() as conn:
@@ -185,6 +186,8 @@ class NetsealRepository:
             )
 
             conn.commit()
+
+            return cursor.rowcount > 0
 
     def reject_transfer(
             self,
@@ -199,7 +202,8 @@ class NetsealRepository:
                     receiver_username=?,
                     reason=?,
                     updated_at=GETDATE()
-                WHERE ID=? \
+                WHERE id=?
+                  AND status='pending' \
                 """
 
         with get_inventory_connection() as conn:
@@ -213,6 +217,8 @@ class NetsealRepository:
             )
 
             conn.commit()
+
+            return cursor.rowcount > 0
 
 
     def get_owner_by_net(
@@ -337,7 +343,39 @@ class NetsealRepository:
         query = """
                 UPDATE asset.net_inventory
                 SET
-                    NET_STATUS='EM_TRANSFERENCIA',
+                    NET_STATUS='Em Transferencia',
+                    UPDATED=GETDATE()
+                WHERE NET_ID=? \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            for net_id in net_ids:
+                cursor.execute(
+                    query,
+                    net_id,
+                )
+
+            conn.commit()
+
+    def rollback_transfer_inventory(
+            self,
+            transfer_id: int,
+    ):
+        transfer = self.get_transfer(
+            transfer_id
+        )
+
+        if not transfer:
+            return
+
+        net_ids = transfer["net_ids"].split(",")
+
+        query = """
+                UPDATE asset.net_inventory
+                SET
+                    NET_STATUS='Disponivel',
                     UPDATED=GETDATE()
                 WHERE NET_ID=? \
                 """
@@ -372,8 +410,9 @@ class NetsealRepository:
                 UPDATE asset.net_inventory
                 SET
                     OWNER_ID=?,
+                    OWNER_NAME=?,
                     OWNER_REGION=?,
-                    NET_STATUS='AVAILABLE',
+                    NET_STATUS='Disponivel',
                     UPDATED=GETDATE(),
                     UPDATED_BY=?
                 WHERE NET_ID=? \
@@ -388,6 +427,7 @@ class NetsealRepository:
                     query,
 
                     transfer["destination_site_id"],
+                    transfer["receiver_username"],
                     transfer["destination_location"],
                     transfer["receiver_username"],
 
@@ -395,6 +435,7 @@ class NetsealRepository:
                 )
 
             conn.commit()
+
 
     def get_transfer(
             self,
@@ -428,4 +469,3 @@ class NetsealRepository:
             return dict(
                 zip(columns, row)
             )
-
