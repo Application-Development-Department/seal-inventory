@@ -43,8 +43,8 @@ class SealService:
 
         return rows
 
-    def get_eseal_inventory(self, limit: int):
-        if limit > 1000:
+    def get_eseal_inventory(self, limit: int | None = None):
+        if limit and limit > 1000:
             raise ValueError("Limit cannot exceed 1000")
 
         return self.repository.get_eseal_inventory(limit=limit)
