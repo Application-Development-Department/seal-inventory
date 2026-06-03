@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from fastapi import Depends
-from typing import Optional
+
 from fastapi import APIRouter, HTTPException, Query
 
 from seal_inventory.schemas.seal import (
@@ -68,7 +68,7 @@ def get_table_rows(
 
 @router.get("/eseals", response_model=ESealInventoryResponse, tags=["eseal"])
 def get_eseals(
-        limit: Optional[int] = Query(default=None),
+        limit: int = Query(default=100, ge=1, le=1000),
         service: SealService = Depends(get_service),
 ):
     try:

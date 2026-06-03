@@ -169,11 +169,10 @@ class NetsealRepository:
         query = """
                 UPDATE asset.transfers
                 SET
-                    status='confirmed',
+                    STATUS='confirmed',
                     receiver_username=?,
                     updated_at=GETDATE()
-                WHERE id=?
-                  AND status='pending' \
+                WHERE id=? \
                 """
 
         with get_inventory_connection() as conn:
@@ -186,8 +185,6 @@ class NetsealRepository:
             )
 
             conn.commit()
-
-            return cursor.rowcount > 0
 
     def reject_transfer(
             self,
@@ -202,8 +199,7 @@ class NetsealRepository:
                     receiver_username=?,
                     reason=?,
                     updated_at=GETDATE()
-                WHERE id=?
-                  AND status='pending' \
+                WHERE ID=? \
                 """
 
         with get_inventory_connection() as conn:
@@ -217,8 +213,6 @@ class NetsealRepository:
             )
 
             conn.commit()
-
-            return cursor.rowcount > 0
 
 
     def get_owner_by_net(
@@ -251,6 +245,31 @@ class NetsealRepository:
                 "owner_name": row[1],
                 "owner_region": row[2],
             }
+
+    def get_transfer(
+            self,
+            transfer_id: int,
+    ):
+        query = """
+                SELECT *
+                FROM asset.transfers
+                WHERE ID = ? \
+                """
+
+        with get_inventory_connection() as conn:
+
+            cursor = conn.cursor()
+
+            cursor.execute(query, transfer_id)
+
+            row = cursor.fetchone()
+    
+            if not row:
+                return None
+
+            columns = [c[0] for c in cursor.description]
+
+            return dict(zip(columns, row))
 
     def get_transfer(
             self,
@@ -310,138 +329,3 @@ class NetsealRepository:
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
             ]
-
-    def mark_seals_in_transfer(
-            self,
-            net_ids: list[str],
-    ):
-        query = """
-                UPDATE asset.net_inventory
-                SET
-                    NET_STATUS='Em Transferencia',
-                    UPDATED=GETDATE()
-                WHERE NET_ID=? \
-                """
-
-        with get_inventory_connection() as conn:
-            cursor = conn.cursor()
-
-            for net_id in net_ids:
-                cursor.execute(
-                    query,
-                    net_id,
-                )
-
-            conn.commit()
-
-    def rollback_transfer_inventory(
-            self,
-            transfer_id: int,
-    ):
-        transfer = self.get_transfer(
-            transfer_id
-        )
-
-        if not transfer:
-            return
-
-        net_ids = transfer["net_ids"].split(",")
-
-        query = """
-                UPDATE asset.net_inventory
-                SET
-                    NET_STATUS='Disponivel',
-                    UPDATED=GETDATE()
-                WHERE NET_ID=? \
-                """
-
-        with get_inventory_connection() as conn:
-            cursor = conn.cursor()
-
-            for net_id in net_ids:
-                cursor.execute(
-                    query,
-                    net_id,
-                )
-
-            conn.commit()
-
-    def apply_transfer_to_inventory(
-            self,
-            transfer_id: int,
-    ):
-        transfer = self.get_transfer(
-            transfer_id
-        )
-
-        if not transfer:
-            raise ValueError(
-                "Transfer not found"
-            )
-
-        net_ids = transfer["net_ids"].split(",")
-
-        query = """
-                UPDATE asset.net_inventory
-                SET
-                    OWNER_ID=?,
-                    OWNER_NAME=?,
-                    OWNER_REGION=?,
-                    NET_STATUS='Disponivel',
-                    UPDATED=GETDATE(),
-                    UPDATED_BY=?
-                WHERE NET_ID=? \
-                """
-
-        with get_inventory_connection() as conn:
-            cursor = conn.cursor()
-
-            for net_id in net_ids:
-
-                cursor.execute(
-                    query,
-
-                    transfer["destination_site_id"],
-                    transfer["destination_site_id"],
-                    transfer["destination_location"],
-
-                    transfer["receiver_username"],
-
-                    net_id,
-                )
-
-            conn.commit()
-
-
-    def get_transfer(
-            self,
-            transfer_id: int,
-    ):
-        query = """
-                SELECT *
-                FROM asset.transfers
-                WHERE id=? \
-                """
-
-        with get_inventory_connection() as conn:
-
-            cursor = conn.cursor()
-
-            cursor.execute(
-                query,
-                transfer_id,
-            )
-
-            row = cursor.fetchone()
-
-            if not row:
-                return None
-
-            columns = [
-                col[0].lower()
-                for col in cursor.description
-            ]
-
-            return dict(
-                zip(columns, row)
-            )
