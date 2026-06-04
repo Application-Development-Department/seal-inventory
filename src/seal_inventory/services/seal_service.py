@@ -49,13 +49,8 @@ class SealService:
 
         return self.repository.get_eseal_inventory(limit=limit)
 
-    def get_eseal_stats(self):
-        stats = self.repository.get_eseal_stats()
-        return {
-            "total_seals": stats.get("total_seals",0),
-            "active": stats.get("active", 0),
-            "available": stats.get("available", 0),
-            "to_change": stats.get("to_change", 0),
-            "compensation": stats.get("compensation", 0),
-            "maintenance": stats.get("maintenance", 0),
-        }
+    def get_master_stats(self):
+        return self.repository.get_master_stats()
+
+    def get_slave_stats(self):
+        return self.repository.get_slave_stats()
