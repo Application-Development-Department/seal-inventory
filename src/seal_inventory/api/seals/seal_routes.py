@@ -83,11 +83,17 @@ def get_eseals(
         "data": data,
     }
 
-@router.get("/eseals/stats", response_model=ESealStatsResponse, tags=["eseal"],)
-def get_eseal_stats(service: SealService = Depends(get_service)):
-    try:
-        return service.get_eseal_stats()
-    except Exception:
-        raise HTTPException(status_code=500, detail="Failed to fetch eseal stats")
+@router.get("/eseals/masters/stats")
+def master_stats(
+        service: SealService = Depends(get_service),
+):
+    return service.get_master_stats()
+
+
+@router.get("/eseals/slaves/stats")
+def slave_stats(
+        service: SealService = Depends(get_service),
+):
+    return service.get_slave_stats()
 
 v1_router.include_router(router)
