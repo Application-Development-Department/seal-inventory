@@ -329,3 +329,39 @@ class NetsealRepository:
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
             ]
+
+
+    def get_transfer_history(self):
+        query = """
+                SELECT
+                    id,
+                    net_ids,
+                    origin_site_id,
+                    origin_location,
+                    destination_site_id,
+                    destination_location,
+                    sender_username,
+                    receiver_username,
+                    status,
+                    reason,
+                    new_site_id,
+                    created_at,
+                    updated_at
+                FROM asset.transfers
+                ORDER BY created_at DESC \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(query)
+
+            columns = [
+                col[0].lower()
+                for col in cursor.description
+            ]
+
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]

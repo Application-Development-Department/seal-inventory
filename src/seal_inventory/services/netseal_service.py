@@ -22,6 +22,9 @@ class NetsealService:
 
         return data
 
+    def get_transfer_history(self):
+        return self.repo.get_transfer_history()
+
     def update(self, id, data, user):
         data["UPDATED_BY"] = user
         self.repo.update(id, data)

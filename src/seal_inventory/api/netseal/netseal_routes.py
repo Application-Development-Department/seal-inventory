@@ -198,3 +198,12 @@ async def reject_transfer(
             status_code=500,
             detail=str(e),
         )
+
+# =====================================================
+# GETS
+# =====================================================
+@router.get("/transfers/history")
+def transfer_history(
+        service: NetsealService = Depends(get_service),
+):
+    return service.get_transfer_history()
